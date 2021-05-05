@@ -22,7 +22,7 @@ using Test
 end
 
 @testset "reverse" begin
-    for (input, expected) in (
+    for (input, expected) ∈ (
         (0, 0),
         (1, 1),
         (-2, -2),
@@ -36,5 +36,60 @@ end
         (2147483642, 0),
     )
         @test Study01.reverse(convert(Int32, input)) == expected
+    end
+end
+
+@testset "palindrome" begin
+    for input ∈ (0, 1, 22, 343, 9876789)
+        @test Study01.palindrome(input)
+    end
+end
+
+@testset "!palindrome" begin
+    for input ∈ (10, 233, 9876879)
+        @test !Study01.palindrome(input)
+    end
+end
+
+@testset "roman" begin
+    for (input, expected) ∈ (
+        ("I", 1),
+        ("III", 3),
+        ("IV", 4),
+        ("V", 5),
+        ("VII", 7),
+        ("IX", 9),
+        ("X", 10),
+        ("XIV", 14),
+        ("XVI", 16),
+        ("XL", 40),
+        ("XLIV", 44),
+        ("L", 50),
+        ("LIX", 59),
+        ("XC", 90),
+        ("CXC", 190),
+        ("C", 100),
+        ("CD", 400),
+        ("CDXCIV", 494),
+        ("D", 500),
+        ("CM", 900),
+        ("M", 1000),
+    )
+        @test Study01.roman2integer(input) == expected
+        @test Study01.roman2integer("M" * input) == 1000 + expected
+    end
+end
+
+@testset "prefix" begin
+    for (input, expected) ∈ (
+        (String[], ""),
+        (["foobar"], "foobar"),
+        (["foobar", "fooba", "foob", "foo", "fo", "fob", "foba", "fobaz"], "fo"),
+        (["foo", "bar"], ""),
+        (["foobar", "foobaz", "fooqux", ""], ""),
+        (["fooone", "footwo", "foothree", "foofour", "foofive"], "foo"),
+        (["foobar", "foobaz", "faabar"], "f")
+    )
+        @test Study01.longestprefix(input) == expected
     end
 end
