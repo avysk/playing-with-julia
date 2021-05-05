@@ -1,8 +1,19 @@
+#=
+        Problem 01: Two Sum
+
+        Given an array of integers nums and an integer target, return indices
+        of the two numbers such that they add up to target.
+
+        You may assume that each input would have exactly one solution, and you
+        may not use the same element twice.
+
+        You can return the answer in any order.
+=#
+
 function twosum(nums::Vector{Int64}, target::Int64)
     numdict = Dict()
 
     for (idx, num) in enumerate(nums)
-
         if num ∈ keys(numdict)
             # we already processed this number
             if num == target / 2
@@ -22,23 +33,3 @@ function twosum(nums::Vector{Int64}, target::Int64)
 
     @assert false "No solution"
 end
-
-
-# 5 + 5 = 10
-res = twosum([1, 5, 2, 5, 10], 10)
-println(res)
-@assert res == [2, 4] || res == [4, 2]
-
-# 2 + 8 = 10
-res = twosum([1, 2, 3, 4, 8, 11, 22], 10)
-println(res)
-@assert res == [2, 5] || res == [5, 2]
-
-# 3 + 7 = 10
-res = twosum([1, 2, 3, 5, 7, 10, 20], 10)
-println(res)
-@assert res == [3, 5] || res == [5, 3]
-
-# No solution
-println("The following must fail")
-twosum([1, 2, 3, 4, 5], 10)
