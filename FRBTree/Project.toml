@@ -1,0 +1,7 @@
+name = "FRBTree"
+uuid = "52d015e4-4000-4118-a596-0eb7ed15a229"
+authors = ["ubuntu "]
+version = "0.1.0"
+
+[deps]
+Match = "7eb4fadd-790c-5f42-8a69-bfa0b872bfbf"
