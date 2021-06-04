@@ -2,9 +2,13 @@ module FRBTree
 
 include("Types.jl")
 
+RBTree = Types.Tree
+EmptyRBTree = Types.EmptyTree
+export push, EmptyRBTree
+
 using Match
 
-function Base.in(item::T, tree::Types.Tree{T})::Bool where {T}
+function Base.in(item::T, tree::RBTree{T})::Bool where {T}
     while tree != Types.EmptyTree{T}()
         if tree.value < item
             tree = tree.right
@@ -71,24 +75,32 @@ end
 
 function ins(item::T, tree::Types.Tree{T})::Types.NonEmptyTree{T} where {T}
     @match tree begin
+        Types.NonEmptyTree{T}(color, left, root, right) => if root > item
+            balance((color, ins(item, left), root, right))
+        else
+            balance((color, left, root, ins(item, right)))
+        end
         Types.EmptyTree{T}() => Types.NonEmptyTree{T}(
             Types.red,
             Types.EmptyTree{T}(),
             item,
             Types.EmptyTree{T}(),
         )
-        Types.NonEmptyTree{T}(color, left, root, right) => if root > item
-            balance((color, ins(item, left), root, right))
-        else
-            balance((color, left, root, ins(item, right)))
-        end
     end
 end
 
-function push(item::T, tree::Types.Tree{T})::Types.NonEmptyTree{T} where {T}
-    @match ins(item, tree) begin
-        Types.NonEmptyTree(_, left, root, right) =>
-            Types.NonEmptyTree(Types.black, left, root, right)
+function blackify(tree::Types.NonEmptyTree{T})::Types.NonEmptyTree{T} where {T}
+    Types.NonEmptyTree{T}(Types.black, tree.left, tree.value, tree.right)
+end
+
+function push(item::T, tree::RBTree{T})::RBTree{T} where {T}
+    ins(item, tree) |> blackify # the root is always black
+end
+
+function Base.isempty(tree::RBTree{T})::Bool where {T}
+    @match tree begin
+        Types.NonEmptyTree{T}(_, _, _, _) => false
+        _ => true
     end
 end
 
