@@ -25,8 +25,12 @@ function filltreeds(n::Int64)::RBTree{Int64}
 end
 
 
-function checkinvariants(tree::FRBTree.RBTree{Int64}, depth::Int64, canbered::Bool)
-    if isempty(tree)
+function checkinvariants(
+    tree::Union{FRBTree.RBTree{Int64},Nothing},
+    depth::Int64,
+    canbered::Bool,
+)
+    if isnothing(tree)
         @test depth == 0
         return
     end
@@ -47,7 +51,7 @@ end
     count = 0
 
     cur = tree
-    while !isempty(cur)
+    while !isnothing(cur)
         if cur.color == FRBTree.Types.black
             count += 1
         end

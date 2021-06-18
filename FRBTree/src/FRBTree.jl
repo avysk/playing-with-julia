@@ -2,12 +2,16 @@ module FRBTree
 
 include("Types.jl")
 
-RBTree = Types.Tree
-EmptyRBTree = Types.EmptyTree
+RBTree{T} = Union{Types.NonEmptyTree{T},Types.EmptyRootTree{T}}
+EmptyRBTree = Types.EmptyRootTree
 export push, EmptyRBTree
 
-function Base.in(item::T, tree::RBTree{T})::Bool where {T}
-    while tree != Types.EmptyTree{T}()
+function Base.in(item::T, tree::Types.EmptyRootTree{T})::Bool where {T}
+    false
+end
+
+function Base.in(item::T, tree::Types.NonEmptyTree{T})::Bool where {T}
+    while !isnothing(tree)()
         if tree.value < item
             tree = tree.right
         elseif tree.value > item
@@ -30,7 +34,7 @@ function lbalance(
     if color == Types.red || left.color == Types.black
         return Types.NonEmptyTree{T}(color, left, value, right)
     end
-    if !isempty(left.left) && left.left.color == Types.red
+    if !isnothing(left.left) && left.left.color == Types.red
         return Types.NonEmptyTree{T}(
             Types.red,
             Types.NonEmptyTree{T}(
@@ -42,7 +46,7 @@ function lbalance(
             left.value,
             Types.NonEmptyTree{T}(Types.black, left.right, value, right),
         )
-    elseif !isempty(left.right) && left.right.color == Types.red
+    elseif !isnothing(left.right) && left.right.color == Types.red
         return Types.NonEmptyTree{T}(
             Types.red,
             Types.NonEmptyTree{T}(Types.black, left.left, left.value, left.right.left),
@@ -64,14 +68,14 @@ function rbalance(
     if color == Types.red || right.color == Types.black
         return Types.NonEmptyTree{T}(color, left, value, right)
     end
-    if !isempty(right.left) && right.left.color == Types.red
+    if !isnothing(right.left) && right.left.color == Types.red
         return Types.NonEmptyTree{T}(
             Types.red,
             Types.NonEmptyTree{T}(Types.black, left, value, right.left.left),
             right.left.value,
             Types.NonEmptyTree{T}(Types.black, right.left.right, right.value, right.right),
         )
-    elseif !isempty(right.right) && right.right.color == Types.red
+    elseif !isnothing(right.right) && right.right.color == Types.red
         return Types.NonEmptyTree{T}(
             Types.red,
             Types.NonEmptyTree{T}(Types.black, left, value, right.left),
@@ -89,14 +93,14 @@ end
 
 
 function ins(item::T, tree::Types.Tree{T})::Types.NonEmptyTree{T} where {T}
-    if !isempty(tree)
+    if !isnothing(tree)
         if item < tree.value
             lbalance(tree.color, ins(item, tree.left), tree.value, tree.right)
         else
             rbalance(tree.color, tree.left, tree.value, ins(item, tree.right))
         end
     else
-        Types.NonEmptyTree{T}(Types.red, Types.EmptyTree{T}(), item, Types.EmptyTree{T}())
+        Types.NonEmptyTree{T}(Types.red, nothing, item, nothing)
     end
 end
 
@@ -104,15 +108,19 @@ function blackify(tree::Types.NonEmptyTree{T})::Types.NonEmptyTree{T} where {T}
     Types.NonEmptyTree{T}(Types.black, tree.left, tree.value, tree.right)
 end
 
-function push(item::T, tree::RBTree{T})::RBTree{T} where {T}
+function push(item::T, tree::Types.NonEmptyTree{T})::RBTree{T} where {T}
     ins(item, tree) |> blackify # the root is always black
+end
+
+function push(item::T, _tree::Types.EmptyRootTree{T})::RBTree{T} where {T}
+    Types.NonEmptyTree{T}(Types.black, nothing, item, nothing)
 end
 
 function Base.isempty(tree::Types.NonEmptyTree{T})::Bool where {T}
     false
 end
 
-function Base.isempty(tree::Types.EmptyTree{T})::Bool where {T}
+function Base.isempty(tree::Types.EmptyRootTree{T})::Bool where {T}
     true
 end
 
