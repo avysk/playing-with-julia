@@ -6,8 +6,6 @@ RBTree = Types.Tree
 EmptyRBTree = Types.EmptyTree
 export push, EmptyRBTree
 
-using Match
-
 function Base.in(item::T, tree::RBTree{T})::Bool where {T}
     while tree != Types.EmptyTree{T}()
         if tree.value < item
@@ -91,18 +89,14 @@ end
 
 
 function ins(item::T, tree::Types.Tree{T})::Types.NonEmptyTree{T} where {T}
-    @match tree begin
-        Types.NonEmptyTree{T}(color, left, root, right) => if root > item
-            lbalance(color, ins(item, left), root, right)
+    if !isempty(tree)
+        if item < tree.value
+            lbalance(tree.color, ins(item, tree.left), tree.value, tree.right)
         else
-            rbalance(color, left, root, ins(item, right))
+            rbalance(tree.color, tree.left, tree.value, ins(item, tree.right))
         end
-        Types.EmptyTree{T}() => Types.NonEmptyTree{T}(
-            Types.red,
-            Types.EmptyTree{T}(),
-            item,
-            Types.EmptyTree{T}(),
-        )
+    else
+        Types.NonEmptyTree{T}(Types.red, Types.EmptyTree{T}(), item, Types.EmptyTree{T}())
     end
 end
 
