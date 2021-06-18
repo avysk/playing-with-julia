@@ -21,64 +21,81 @@ function Base.in(item::T, tree::RBTree{T})::Bool where {T}
     false
 end
 
-function balance(
-    body::Tuple{Types.Color,Types.Tree{T},T,Types.Tree{T}},
+function lbalance(
+    color::Types.Color,
+    left::Types.Tree{T},
+    value::T,
+    right::Types.Tree{T},
 )::Types.NonEmptyTree{T} where {T}
-    @match body begin
-        (
-            Types.black,
-            Types.NonEmptyTree(Types.red, Types.NonEmptyTree(Types.red, a, x, b), y, c),
-            z,
-            d,
-        ) => Types.NonEmptyTree(
-            Types.red,
-            Types.NonEmptyTree(Types.black, a, x, b),
-            y,
-            Types.NonEmptyTree(Types.black, c, z, d),
-        )
-        (
-            Types.black,
-            Types.NonEmptyTree(Types.red, a, x, Types.NonEmptyTree(Types.red, b, y, c)),
-            z,
-            d,
-        ) => Types.NonEmptyTree(
-            Types.red,
-            Types.NonEmptyTree(Types.black, a, x, b),
-            y,
-            Types.NonEmptyTree(Types.black, c, z, d),
-        )
-        (
-            Types.black,
-            a,
-            x,
-            Types.NonEmptyTree(Types.red, Types.NonEmptyTree(Types.red, b, y, c), z, d),
-        ) => Types.NonEmptyTree(
-            Types.red,
-            Types.NonEmptyTree(Types.black, a, x, b),
-            y,
-            Types.NonEmptyTree(Types.black, c, z, d),
-        )
-        (
-            Types.black,
-            a,
-            x,
-            Types.NonEmptyTree(Types.red, b, y, Types.NonEmptyTree(Types.red, c, z, d)),
-        ) => Types.NonEmptyTree(
-            Types.red,
-            Types.NonEmptyTree(Types.black, a, x, b),
-            y,
-            Types.NonEmptyTree(Types.black, c, z, d),
-        )
-        (color, left, value, right) => Types.NonEmptyTree(color, left, value, right)
+    # this function is called when "left" is a result of ins operation, so non-empty
+    # also "right" is untouched, so it's balanced
+    if color == Types.red || left.color == Types.black
+        return Types.NonEmptyTree{T}(color, left, value, right)
     end
+    if !isempty(left.left) && left.left.color == Types.red
+        return Types.NonEmptyTree{T}(
+            Types.red,
+            Types.NonEmptyTree{T}(
+                Types.black,
+                left.left.left,
+                left.left.value,
+                left.left.right,
+            ),
+            left.value,
+            Types.NonEmptyTree{T}(Types.black, left.right, value, right),
+        )
+    elseif !isempty(left.right) && left.right.color == Types.red
+        return Types.NonEmptyTree{T}(
+            Types.red,
+            Types.NonEmptyTree{T}(Types.black, left.left, left.value, left.right.left),
+            left.right.value,
+            Types.NonEmptyTree{T}(Types.black, left.right.right, value, right),
+        )
+    end
+    return Types.NonEmptyTree{T}(color, left, value, right)
 end
+
+function rbalance(
+    color::Types.Color,
+    left::Types.Tree{T},
+    value::T,
+    right::Types.Tree{T},
+)::Types.NonEmptyTree{T} where {T}
+    # this function is called when "right" is a result of ins operation, so non-empty
+    # also "left" is untouched, so it's balanced
+    if color == Types.red || right.color == Types.black
+        return Types.NonEmptyTree{T}(color, left, value, right)
+    end
+    if !isempty(right.left) && right.left.color == Types.red
+        return Types.NonEmptyTree{T}(
+            Types.red,
+            Types.NonEmptyTree{T}(Types.black, left, value, right.left.left),
+            right.left.value,
+            Types.NonEmptyTree{T}(Types.black, right.left.right, right.value, right.right),
+        )
+    elseif !isempty(right.right) && right.right.color == Types.red
+        return Types.NonEmptyTree{T}(
+            Types.red,
+            Types.NonEmptyTree{T}(Types.black, left, value, right.left),
+            right.value,
+            Types.NonEmptyTree{T}(
+                Types.black,
+                right.right.left,
+                right.right.value,
+                right.right.right,
+            ),
+        )
+    end
+    return Types.NonEmptyTree{T}(color, left, value, right)
+end
+
 
 function ins(item::T, tree::Types.Tree{T})::Types.NonEmptyTree{T} where {T}
     @match tree begin
         Types.NonEmptyTree{T}(color, left, root, right) => if root > item
-            balance((color, ins(item, left), root, right))
+            lbalance(color, ins(item, left), root, right)
         else
-            balance((color, left, root, ins(item, right)))
+            rbalance(color, left, root, ins(item, right))
         end
         Types.EmptyTree{T}() => Types.NonEmptyTree{T}(
             Types.red,
