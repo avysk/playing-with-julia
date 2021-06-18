@@ -114,11 +114,12 @@ function push(item::T, tree::RBTree{T})::RBTree{T} where {T}
     ins(item, tree) |> blackify # the root is always black
 end
 
-function Base.isempty(tree::RBTree{T})::Bool where {T}
-    @match tree begin
-        Types.NonEmptyTree{T}(_, _, _, _) => false
-        _ => true
-    end
+function Base.isempty(tree::Types.NonEmptyTree{T})::Bool where {T}
+    false
+end
+
+function Base.isempty(tree::Types.EmptyTree{T})::Bool where {T}
+    true
 end
 
 end
